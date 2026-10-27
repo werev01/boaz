@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Projeção Comercial Boaz</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -73,6 +78,14 @@ input:focus,select:focus,button:focus-visible{border-color:var(--cyan);box-shado
 @media (max-width:560px){.stage{grid-template-columns:1fr 90px}.stage .bar{grid-column:1/-1;grid-row:2}.rate{grid-column:1/-1}}
 .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
 .kpis.mt{margin-top:18px}
+.kpis.k8{grid-template-columns:repeat(4,1fr)}
+.pgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px}
+@media (max-width:1100px){.pgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.pgrid{grid-template-columns:1fr}}
+.group.pg{border-top:0;padding-top:0}
+.pgrid .group.pg + .group.pg{border-left:1px solid var(--line);padding-left:20px}
+@media (max-width:1100px){.pgrid .group.pg:nth-child(odd){border-left:0;padding-left:0}}
+@media (max-width:620px){.pgrid .group.pg{border-left:0!important;padding-left:0!important}}
 @media (max-width:760px){.kpis{grid-template-columns:repeat(2,1fr)}}
 .kpi{background:var(--field);border-radius:10px;padding:12px 14px;min-width:0}
 .kpi b{display:block;font-family:var(--display);font-weight:600;font-size:19px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -118,16 +131,23 @@ details[open] summary{margin-bottom:14px}
 .btn{font:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 12px;cursor:pointer}
 .btn:hover{border-color:var(--cyan)}
 /* Lista de custos */
-.costs{display:flex;flex-direction:column;gap:8px}
-.crow{display:grid;grid-template-columns:1fr 96px;gap:6px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--field)}
+.costs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,600px),1fr));gap:8px}
+.crow{display:grid;grid-template-columns:minmax(0,1.2fr) 96px minmax(0,1.4fr) 124px 32px;align-items:center;gap:6px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--field)}
 .crow input,.crow select{font:inherit;font-size:13px;background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:7px;padding:6px 8px;outline:none;min-width:0;width:100%}
 .crow input[type=number]{text-align:right;font-variant-numeric:tabular-nums}
-.crow .meta{grid-column:1/-1;display:grid;grid-template-columns:1fr 92px 30px;gap:6px}
+.crow .meta{display:contents}
+.crow .del{height:32px}
+@media (max-width:560px){.crow{grid-template-columns:1fr 104px}.crow .meta{display:grid;grid-column:1/-1;grid-template-columns:1fr 112px 32px;gap:6px}}
 .crow .del{border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:7px;cursor:pointer;font-size:15px;line-height:1}
 .crow .del:hover{color:var(--neg);border-color:var(--neg)}
 [data-view]{display:flex;flex-direction:column;gap:24px}
+[hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
 </style>
+<style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+
 
 <div class="wrap">
   <header>
@@ -205,31 +225,43 @@ details[open] summary{margin-bottom:14px}
     </section>
 
     <section class="panel">
-      <details>
-        <summary><h2 style="margin:0">Cascata por safra</h2><span class="chev">mostrar / ocultar</span></summary>
+      <div class="sub"><h2>Cascata por safra</h2></div>
         <p class="hint" style="margin-bottom:12px">Cada linha é a safra de vendas de um mês. As colunas mostram quanto dela cai no caixa em cada mês (bruto).</p>
         <div class="tbl"><table id="ctab"></table></div>
-      </details>
     </section>
   </div>
 
   <!-- ================= DRE ================= -->
   <div data-view="dre" id="viewDre" hidden>
-    <div class="grid">
-      <aside class="panel">
-        <h2>Premissas de custo</h2>
-        <div class="fields">
-          <div class="group">
+    <section class="panel">
+          <div class="sub"><h2>Resumo do período</h2><span class="eyebrow" id="dreHorizon"></span></div>
+          <div class="kpis k8">
+            <div class="kpi" id="kAccBox"><b id="kAcc">R$ 0</b><span>resultado acumulado</span></div>
+            <div class="kpi bad" id="kWorstBox"><b id="kWorst">R$ 0</b><span>necessidade de caixa</span><em id="kWorstM"></em></div>
+            <div class="kpi"><b id="kTurn">–</b><span>1º mês com resultado positivo</span></div>
+            <div class="kpi accent"><b id="kPay">–</b><span>mês em que o acumulado se paga</span></div>
+          
+            <div class="kpi"><b id="kMC">0%</b><span>margem de contribuição</span></div>
+            <div class="kpi"><b id="kCAC">R$ 0</b><span>CAC (marketing e time comercial por venda)</span></div>
+            <div class="kpi"><b id="kFix">R$ 0</b><span>custo fixo médio por mês</span></div>
+            <div class="kpi"><b id="kFut">R$ 0</b><span>receita líquida a receber após o período</span></div>
+          </div>
+        </section>
+
+    <section class="panel">
+      <h2>Premissas de custo</h2>
+      <div class="pgrid">
+        <div class="group pg">
             <span class="eyebrow">Perdas de receita</span>
             <div class="f"><label for="churn">Cancelamento de cotas<small>% da carteira ativa por mês</small></label><div class="inp pct"><input id="churn" type="number" min="0" max="100" step="0.1" value="1.5"></div></div>
             <div class="f"><label for="inad">Inadimplência<small>% das parcelas que não caem no mês</small></label><div class="inp pct"><input id="inad" type="number" min="0" max="100" step="0.1" value="3"></div></div>
             <p class="bench">Referência de mercado (Banco Central, dez/24): 56,9% das cotas de imóveis acabam excluídas ao longo da vida do grupo, o que dá cerca de 1,5% ao mês; pré-inadimplência do sistema em 3,02%. Sem estorno de comissão.</p>
           </div>
-          <div class="group">
+        <div class="group pg">
             <span class="eyebrow">Impostos</span>
             <div class="f"><label for="imp">Alíquota<small>Lucro Presumido, sobre a receita</small></label><div class="inp pct"><input id="imp" type="number" min="0" max="100" step="0.1" value="15"></div></div>
           </div>
-          <div class="group">
+        <div class="group pg">
             <span class="eyebrow">Time comercial (PJ)</span>
             <div class="f"><label for="cv">Comissão do vendedor<small>% do valor da carta</small></label><div class="inp pct"><input id="cv" type="number" min="0" max="100" step="0.05" value="1"></div></div>
             <div class="f"><label for="cvp">Parcelas da comissão<small>do vendedor</small></label><div class="inp"><input id="cvp" type="number" min="1" max="36" step="1" value="12"></div></div>
@@ -237,37 +269,19 @@ details[open] summary{margin-bottom:14px}
             <div class="f"><label for="ch">Comissão do head<small>% da carta, sobre vendas do time</small></label><div class="inp pct"><input id="ch" type="number" min="0" max="100" step="0.05" value="0"></div></div>
             <div class="f"><label for="follow">Comissões acompanham perdas<small>só paga parcela que a Boaz recebe</small></label><div class="inp"><select id="follow"><option value="1">Sim</option><option value="0">Não</option></select></div></div>
           </div>
-          <div class="group">
+        <div class="group pg">
             <span class="eyebrow">Marketing</span>
             <div class="f"><label for="cpl">Custo por lead (CPL)<small>tráfego = CPL × leads da projeção</small></label><div class="inp brl"><input id="cpl" type="number" min="0" step="1" value="25"></div></div>
             <div class="f"><label for="conf">Confraria<small>valor padrão por mês, ajuste na DRE</small></label><div class="inp brl"><input id="conf" type="number" min="0" step="500" value="3000"></div></div>
           </div>
-          <div class="group">
-            <div class="sub" style="margin:0"><span class="eyebrow">Custos fixos</span><button type="button" class="btn" id="addCost">+ Adicionar</button></div>
-            <div class="costs" id="costs"></div>
-            <p class="hint">Valores de exemplo. Ajuste nome, valor mensal, grupo e mês de início de cada item.</p>
-          </div>
-        </div>
-      </aside>
-
-      <div class="right">
-        <section class="panel">
-          <div class="sub"><h2>Resumo do período</h2><span class="eyebrow" id="dreHorizon"></span></div>
-          <div class="kpis">
-            <div class="kpi" id="kAccBox"><b id="kAcc">R$ 0</b><span>resultado acumulado</span></div>
-            <div class="kpi bad" id="kWorstBox"><b id="kWorst">R$ 0</b><span>necessidade de caixa</span><em id="kWorstM"></em></div>
-            <div class="kpi"><b id="kTurn">–</b><span>1º mês com resultado positivo</span></div>
-            <div class="kpi accent"><b id="kPay">–</b><span>mês em que o acumulado se paga</span></div>
-          </div>
-          <div class="kpis mt">
-            <div class="kpi"><b id="kMC">0%</b><span>margem de contribuição</span></div>
-            <div class="kpi"><b id="kCAC">R$ 0</b><span>CAC (marketing e time comercial por venda)</span></div>
-            <div class="kpi"><b id="kFix">R$ 0</b><span>custo fixo médio por mês</span></div>
-            <div class="kpi"><b id="kFut">R$ 0</b><span>receita líquida a receber após o período</span></div>
-          </div>
-        </section>
       </div>
-    </div>
+    </section>
+
+    <section class="panel">
+      <div class="sub"><h2>Custos fixos</h2><button type="button" class="btn" id="addCost">+ Adicionar custo</button></div>
+      <div class="costs" id="costs"></div>
+      <p class="note">Valores de exemplo. Ajuste nome, valor mensal, grupo e mês de início de cada item.</p>
+    </section>
 
     <section class="panel">
       <div class="sub"><h2>DRE mês a mês</h2><span class="hint">Regime de caixa. A linha da confraria pode ser editada mês a mês</span></div>
@@ -507,3 +521,6 @@ details[open] summary{margin-bottom:14px}
   load();renderCosts();route();render();
 })();
 </script>
+
+</body>
+</html>
