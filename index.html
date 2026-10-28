@@ -264,10 +264,10 @@ details[open] summary{margin-bottom:14px}
           </div>
         <div class="group pg">
             <span class="eyebrow">Time comercial (PJ)</span>
-            <div class="f"><label for="cv">Comissão do vendedor<small>% do valor da carta</small></label><div class="inp pct"><input id="cv" type="number" min="0" max="100" step="0.05" value="1"></div></div>
+            <div class="f"><label for="cv">Comissão do vendedor<small>% do valor da carta</small></label><div class="inp pct"><input id="cv" type="number" min="0" max="100" step="0.05" value="0.7"></div></div>
             <div class="f"><label for="cvp">Parcelas da comissão<small>do vendedor</small></label><div class="inp"><input id="cvp" type="number" min="1" max="36" step="1" value="12"></div></div>
             <div class="f"><label for="fixoV">Fixo por vendedor<small>nº de vendedores vem da projeção</small></label><div class="inp brl"><input id="fixoV" type="number" min="0" step="500" value="3000"></div></div>
-            <div class="f"><label for="ch">Comissão do head<small>% da carta, sobre vendas do time</small></label><div class="inp pct"><input id="ch" type="number" min="0" max="100" step="0.05" value="0"></div></div>
+            <div class="f"><label for="ch">Comissão do head<small>% da carta, sobre vendas do time</small></label><div class="inp pct"><input id="ch" type="number" min="0" max="100" step="0.05" value="0.3"></div></div>
             <div class="f"><label for="follow">Comissões acompanham perdas<small>só paga parcela que a Boaz recebe</small></label><div class="inp"><select id="follow"><option value="1">Sim</option><option value="0">Não</option></select></div></div>
           </div>
         <div class="group pg">
@@ -298,7 +298,7 @@ details[open] summary{margin-bottom:14px}
   const $=id=>document.getElementById(id);
   const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
   const DEF={hor:"12",vend:2,leads:1000,tAg:25,tRe:70,tVe:15,tkt:400000,com:4,parc:12,ini:"2026-12",
-    churn:1.5,inad:3,imp:15,cv:1,cvp:12,fixoV:3000,ch:0,follow:"1",cpl:25};
+    churn:1.5,inad:3,imp:15,cv:0.7,cvp:12,fixoV:3000,ch:0.3,follow:"1",cpl:25};
   const GROUPS={time:"Time e operação",mkt:"Marketing",ferr:"Ferramentas e estrutura"};
   const DEF_COSTS=[
     {nome:"Head comercial (PJ)",valor:10000,grupo:"time",ini:0},
@@ -494,12 +494,13 @@ details[open] summary{margin-bottom:14px}
   }
 
   function render(){const m=model();renderProj(m);renderDre(m);save()}
-  function save(){try{const s={ov,edOv,costs};Object.keys(DEF).forEach(k=>s[k]=$(k).value);localStorage.setItem("boazProj2",JSON.stringify(s))}catch(e){}}
+  function save(){try{const s={ov,edOv,costs,v:3};Object.keys(DEF).forEach(k=>s[k]=$(k).value);localStorage.setItem("boazProj2",JSON.stringify(s))}catch(e){}}
   function load(){try{
     let s=JSON.parse(localStorage.getItem("boazProj2")||"null");
     if(!s){const old=JSON.parse(localStorage.getItem("boazProj")||"null");if(old){s={};["leads","tAg","tRe","tVe","tkt","com","parc","ini","vend"].forEach(k=>{if(old[k]!==undefined)s[k]=old[k]});s.ov=old.ov}}
     if(!s)return;
     Object.keys(DEF).forEach(k=>{if(s[k]!==undefined)$(k).value=s[k]});
+    if(!s.v){if(s.cv==="1")$("cv").value=0.7;if(s.ch==="0")$("ch").value=0.3}
     ov=s.ov||{};edOv=Object.assign({traf:{},fixoV:{}},s.edOv||{});delete edOv.conf;if(Array.isArray(s.costs))costs=s.costs;
   }catch(e){}}
 
