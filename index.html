@@ -715,7 +715,7 @@ details[open] summary{margin-bottom:14px}
     // avisos
     const items=[];
     const add=(key,valTxt,vv)=>{const s=status(key,vv);if(s==="ok")return;const L=lim[key];
-      const ref=L.tipo==="taxa"?(s==="bad"?`abaixo de ${num(L.alerta,1)}%`:`acima de ${num(L.otimo,1)}%`):(s==="bad"?`acima de ${brl(L.alerta)}`:`abaixo de ${brl(L.otimo)}`);
+      const ref=L.tipo==="taxa"?(s==="bad"?`abaixo do limite de ${num(L.alerta,1)}%`:`na faixa de ótimo (a partir de ${num(L.otimo,1)}%)`):(s==="bad"?`acima do limite de ${brl(L.alerta)}`:`na faixa de ótimo (até ${brl(L.otimo)})`);
       items.push({s,html:`<b>${L.nome} em ${valTxt}</b>, ${ref}<span class="d">${TIPS[key][s==="bad"?0:1]}</span>`})};
     add("cpl",brl(v.cpl),v.cpl);
     ["r1","r2","r3","r4"].forEach(k=>add(k,num(v[k],1)+"%",v[k]));
