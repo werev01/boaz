@@ -107,6 +107,7 @@ th:first-child{background:var(--field)}
 tr:last-child td{border-bottom:0}
 tfoot td{font-weight:700;color:var(--ink);background:var(--field)}
 tfoot td:first-child{background:var(--field)}
+td input.man{border-color:var(--cyan);background:var(--cyan-soft)}
 td input{width:76px;font:inherit;text-align:right;background:var(--field);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:4px 6px;outline:none}
 td.c0{color:var(--line)}
 td.c1{background:var(--cyan-soft);color:var(--ink)}
@@ -221,7 +222,7 @@ details[open] summary{margin-bottom:14px}
     <section class="panel">
       <div class="sub"><h2>Projeção mês a mês</h2><span class="hint">Vendedores e leads podem ser ajustados por mês</span></div>
       <div class="tbl"><table id="mtab"></table></div>
-      <p class="note">A 1ª parcela da comissão cai no mesmo mês da venda. Valores brutos: cancelamentos, inadimplência, impostos e custos estão na aba DRE.</p>
+      <p class="note">A 1ª parcela da comissão cai no mês seguinte ao da venda. Valores brutos: cancelamentos, inadimplência, impostos e custos estão na aba DRE.</p>
     </section>
 
     <section class="panel">
@@ -284,7 +285,7 @@ details[open] summary{margin-bottom:14px}
     </section>
 
     <section class="panel">
-      <div class="sub"><h2>DRE mês a mês</h2><span class="hint">Regime de caixa. A linha da confraria pode ser editada mês a mês</span></div>
+      <div class="sub"><h2>DRE mês a mês</h2><span class="hint">Regime de caixa. Fixo dos vendedores, tráfego e confraria podem ser editados mês a mês; apague o valor para voltar ao cálculo automático</span></div>
       <div class="tbl"><table id="dtab"></table></div>
       <p class="note">Necessidade de caixa é o pior saldo acumulado do período, ou seja, quanto capital precisa entrar para a operação chegar ao ponto de virada.</p>
     </section>
@@ -309,7 +310,7 @@ details[open] summary{margin-bottom:14px}
     {nome:"Contabilidade",valor:1500,grupo:"ferr",ini:0}
   ];
   let ov={};       // overrides da projeção por mês {i:{vend,leads}}
-  let confOv={};   // confraria por mês {i:valor}
+  let edOv={conf:{},traf:{},fixoV:{}};   // valores digitados na DRE por mês
   let costs=JSON.parse(JSON.stringify(DEF_COSTS));
 
   const brl=v=>{const r=Math.round(v);return (r<0?"-":"")+"R$ "+Math.abs(r).toLocaleString("pt-BR")};
@@ -336,7 +337,7 @@ details[open] summary{margin-bottom:14px}
     const h=H(), P=Math.max(1,Math.round(n("parc"))), PV=Math.max(1,Math.round(n("cvp")));
     const data=[];for(let i=0;i<h;i++){const mi=monthInputs(i);data.push({...mi,...funnel(mi.leads)})}
     // cascata bruta
-    const casc=data.map((d,s)=>Array.from({length:h},(_,k)=>(k>=s&&k<s+P)?d.comissao/P:0));
+    const casc=data.map((d,s)=>Array.from({length:h},(_,k)=>(k>s&&k<=s+P)?d.comissao/P:0));
     const rec=Array.from({length:h},(_,k)=>casc.reduce((a,r)=>a+r[k],0));
     let acc=0;const accum=rec.map(r=>acc+=r);
 
@@ -352,22 +353,22 @@ details[open] summary{margin-bottom:14px}
       data.forEach((d,s)=>{
         if(k<s)return;
         const a=Math.pow(1-ch,k-s);
-        if(k<s+P){bruta+=d.comissao/P;ativa+=d.comissao/P*a}
-        if(k<s+PV){const f=follow?a*(1-inad):1;comV+=d.cartas*cv/PV*f;comH+=d.cartas*chd/PV*f}
+        if(k>s&&k<=s+P){bruta+=d.comissao/P;ativa+=d.comissao/P*a}
+        if(k>s&&k<=s+PV){const f=follow?a*(1-inad):1;comV+=d.cartas*cv/PV*f;comH+=d.cartas*chd/PV*f}
       });
       const lChurn=bruta-ativa, lInad=ativa*inad, ajust=ativa-lInad, tax=ajust*imp, liq=ajust-tax;
       L.bruta[k]=bruta;L.churn[k]=-lChurn;L.inad[k]=-lInad;L.ajust[k]=ajust;L.imp[k]=-tax;L.liq[k]=liq;
       L.comV[k]=-comV;L.comH[k]=-comH;L.mc[k]=liq-comV-comH;
-      L.fixoV[k]=-data[k].vend*n("fixoV");
-      L.traf[k]=-data[k].leads*n("cpl");
-      L.conf[k]=-(confOv[k]??n("conf"));
+      L.fixoV[k]=-(edOv.fixoV[k]??data[k].vend*n("fixoV"));
+      L.traf[k]=-(edOv.traf[k]??data[k].leads*n("cpl"));
+      L.conf[k]=-(edOv.conf[k]??n("conf"));
       let fix=0;items.forEach(it=>{const v=k>=(+it.ini||0)?(+it.valor||0):0;it.vals[k]=-v;fix+=v});
       L.res[k]=L.mc[k]+L.fixoV[k]+L.traf[k]+L.conf[k]-fix;
       L.acc[k]=(k?L.acc[k-1]:0)+L.res[k];
     }
     // receita líquida após o período (parcelas futuras, com perdas)
     let fut=0;
-    data.forEach((d,s)=>{for(let k=h;k<s+P;k++){const a=Math.pow(1-ch,k-s);fut+=d.comissao/P*a*(1-inad)*(1-imp)}});
+    data.forEach((d,s)=>{for(let k=Math.max(h,s+1);k<=s+P;k++){const a=Math.pow(1-ch,k-s);fut+=d.comissao/P*a*(1-inad)*(1-imp)}});
     return {h,P,data,casc,rec,accum,L,items,fut};
   }
 
@@ -413,6 +414,7 @@ details[open] summary{margin-bottom:14px}
     const grp=g=>items.filter(i=>i.grupo===g);
     const add=(...arrs)=>Array.from({length:h},(_,k)=>arrs.reduce((a,x)=>a+x[k],0));
     const pct=n("imp");
+    const edRow=(label,key,arr)=>`<tr class="it"><td>${label}</td>${arr.map((v,k)=>`<td><input type="number" min="0" step="100" id="ed${key}${k}" data-ed="${key}" data-k="${k}" class="${edOv[key][k]!==undefined?"man":""}" value="${Math.round(-v)}" aria-label="${label} ${M[k]}"></td>`).join("")}${cell(sum(arr),"tc")}</tr>`;
     let t=`<thead><tr><th>Linha</th>${M.map(x=>`<th>${x}</th>`).join("")}<th class="tc">Total</th></tr></thead><tbody>`;
     t+=row("Receita bruta de comissões",L.bruta);
     t+=row("(-) Cancelamentos de cotas",L.churn,"it");
@@ -426,13 +428,13 @@ details[open] summary{margin-bottom:14px}
     // Time
     const time=grp("time"), timeTot=add(L.fixoV,...time.map(i=>i.vals));
     t+=row("(-) "+GROUPS.time,timeTot,"cat");
-    t+=row("Fixo dos vendedores",L.fixoV,"it");
+    t+=edRow("Fixo dos vendedores","fixoV",L.fixoV);
     time.forEach(i=>t+=row(esc(i.nome),i.vals,"it"));
     // Marketing
-    const mk=grp("mkt"), confInputs=`<tr class="it"><td>Confraria</td>${L.conf.map((v,k)=>`<td><input type="number" min="0" step="100" id="cf${k}" data-cf="${k}" value="${Math.round(-v)}" aria-label="Confraria ${M[k]}"></td>`).join("")}${cell(sum(L.conf),"tc")}</tr>`;
+    const mk=grp("mkt"), confInputs=edRow("Confraria","conf",L.conf);
     const mkTot=add(L.traf,L.conf,...mk.map(i=>i.vals));
     t+=row("(-) "+GROUPS.mkt,mkTot,"cat");
-    t+=row("Tráfego pago (CPL × leads)",L.traf,"it");
+    t+=edRow("Tráfego pago","traf",L.traf);
     t+=confInputs;
     mk.forEach(i=>t+=row(esc(i.nome),i.vals,"it"));
     // Ferramentas
@@ -494,28 +496,28 @@ details[open] summary{margin-bottom:14px}
   }
 
   function render(){const m=model();renderProj(m);renderDre(m);save()}
-  function save(){try{const s={ov,confOv,costs};Object.keys(DEF).forEach(k=>s[k]=$(k).value);localStorage.setItem("boazProj2",JSON.stringify(s))}catch(e){}}
+  function save(){try{const s={ov,edOv,costs};Object.keys(DEF).forEach(k=>s[k]=$(k).value);localStorage.setItem("boazProj2",JSON.stringify(s))}catch(e){}}
   function load(){try{
     let s=JSON.parse(localStorage.getItem("boazProj2")||"null");
     if(!s){const old=JSON.parse(localStorage.getItem("boazProj")||"null");if(old){s={};["leads","tAg","tRe","tVe","tkt","com","parc","ini","vend"].forEach(k=>{if(old[k]!==undefined)s[k]=old[k]});s.ov=old.ov}}
     if(!s)return;
     Object.keys(DEF).forEach(k=>{if(s[k]!==undefined)$(k).value=s[k]});
-    ov=s.ov||{};confOv=s.confOv||{};if(Array.isArray(s.costs))costs=s.costs;
+    ov=s.ov||{};edOv=Object.assign({conf:{},traf:{},fixoV:{}},s.edOv||{});if(s.confOv)edOv.conf=s.confOv;if(Array.isArray(s.costs))costs=s.costs;
   }catch(e){}}
 
   Object.keys(DEF).forEach(k=>$(k).addEventListener("input",()=>{
     if(k==="vend"||k==="leads")Object.values(ov).forEach(o=>delete o[k]);
-    if(k==="conf")confOv={};
+    if(k==="conf")edOv.conf={};if(k==="cpl")edOv.traf={};if(k==="fixoV")edOv.fixoV={};
     if(k==="hor"||k==="ini")renderCosts();
     render();
   }));
   $("mtab").addEventListener("change",e=>{const t=e.target;if(t.tagName!=="INPUT")return;const i=+t.dataset.i,k=t.dataset.k,v=parseFloat(t.value);ov[i]=ov[i]||{};ov[i][k]=isFinite(v)?v:0;render()});
-  $("dtab").addEventListener("change",e=>{const t=e.target;if(t.dataset.cf===undefined)return;const v=parseFloat(t.value);confOv[+t.dataset.cf]=isFinite(v)?v:0;render()});
+  $("dtab").addEventListener("change",e=>{const t=e.target;if(t.dataset.ed===undefined)return;const v=parseFloat(t.value),o=edOv[t.dataset.ed],k=+t.dataset.k;if(t.value.trim()==="")delete o[k];else o[k]=isFinite(v)?v:0;render()});
   $("costs").addEventListener("input",e=>{const t=e.target;if(t.dataset.c===undefined)return;const c=costs[+t.dataset.c],f=t.dataset.f;c[f]=(f==="nome"||f==="grupo")?t.value:(parseFloat(t.value)||0);render()});
   $("costs").addEventListener("change",e=>{if(e.target.dataset.f==="grupo"||e.target.dataset.f==="ini")render()});
   $("costs").addEventListener("click",e=>{const d=e.target.dataset.del;if(d===undefined)return;costs.splice(+d,1);renderCosts();render()});
   $("addCost").addEventListener("click",()=>{costs.push({nome:"Novo custo",valor:0,grupo:"ferr",ini:0});renderCosts();render();const i=costs.length-1;$("cn"+i).focus();$("cn"+i).select()});
-  $("reset").addEventListener("click",()=>{Object.entries(DEF).forEach(([k,v])=>$(k).value=v);ov={};confOv={};costs=JSON.parse(JSON.stringify(DEF_COSTS));renderCosts();render()});
+  $("reset").addEventListener("click",()=>{Object.entries(DEF).forEach(([k,v])=>$(k).value=v);ov={};edOv={conf:{},traf:{},fixoV:{}};costs=JSON.parse(JSON.stringify(DEF_COSTS));renderCosts();render()});
   window.addEventListener("hashchange",route);
 
   load();renderCosts();route();render();
