@@ -273,7 +273,6 @@ details[open] summary{margin-bottom:14px}
         <div class="group pg">
             <span class="eyebrow">Marketing</span>
             <div class="f"><label for="cpl">Custo por lead (CPL)<small>tráfego = CPL × leads da projeção</small></label><div class="inp brl"><input id="cpl" type="number" min="0" step="1" value="25"></div></div>
-            <div class="f"><label for="conf">Confraria<small>valor padrão por mês, ajuste na DRE</small></label><div class="inp brl"><input id="conf" type="number" min="0" step="500" value="3000"></div></div>
           </div>
       </div>
     </section>
@@ -285,7 +284,7 @@ details[open] summary{margin-bottom:14px}
     </section>
 
     <section class="panel">
-      <div class="sub"><h2>DRE mês a mês</h2><span class="hint">Regime de caixa. Fixo dos vendedores, tráfego e confraria podem ser editados mês a mês; apague o valor para voltar ao cálculo automático</span></div>
+      <div class="sub"><h2>DRE mês a mês</h2><span class="hint">Regime de caixa. Fixo dos vendedores, tráfego e custos fixos podem ser editados mês a mês; apague o valor para voltar ao padrão</span></div>
       <div class="tbl"><table id="dtab"></table></div>
       <p class="note">Necessidade de caixa é o pior saldo acumulado do período, ou seja, quanto capital precisa entrar para a operação chegar ao ponto de virada.</p>
     </section>
@@ -299,7 +298,7 @@ details[open] summary{margin-bottom:14px}
   const $=id=>document.getElementById(id);
   const MESES=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
   const DEF={hor:"12",vend:2,leads:1000,tAg:25,tRe:70,tVe:15,tkt:400000,com:4,parc:12,ini:"2026-12",
-    churn:1.5,inad:3,imp:15,cv:1,cvp:12,fixoV:3000,ch:0,follow:"1",cpl:25,conf:3000};
+    churn:1.5,inad:3,imp:15,cv:1,cvp:12,fixoV:3000,ch:0,follow:"1",cpl:25};
   const GROUPS={time:"Time e operação",mkt:"Marketing",ferr:"Ferramentas e estrutura"};
   const DEF_COSTS=[
     {nome:"Head comercial (PJ)",valor:10000,grupo:"time",ini:0},
@@ -310,7 +309,7 @@ details[open] summary{margin-bottom:14px}
     {nome:"Contabilidade",valor:1500,grupo:"ferr",ini:0}
   ];
   let ov={};       // overrides da projeção por mês {i:{vend,leads}}
-  let edOv={conf:{},traf:{},fixoV:{}};   // valores digitados na DRE por mês
+  let edOv={traf:{},fixoV:{}};   // valores digitados na DRE por mês
   let costs=JSON.parse(JSON.stringify(DEF_COSTS));
 
   const brl=v=>{const r=Math.round(v);return (r<0?"-":"")+"R$ "+Math.abs(r).toLocaleString("pt-BR")};
@@ -346,7 +345,7 @@ details[open] summary{margin-bottom:14px}
     const cv=n("cv")/100, chd=n("ch")/100;
     const R=k=>Array(h).fill(0);
     const L={bruta:R(),churn:R(),inad:R(),ajust:R(),imp:R(),liq:R(),comV:R(),comH:R(),mc:R(),
-      fixoV:R(),traf:R(),conf:R(),res:R(),acc:R()};
+      fixoV:R(),traf:R(),res:R(),acc:R()};
     const items=costs.map(c=>({...c,vals:R()}));
     for(let k=0;k<h;k++){
       let bruta=0,ativa=0,comV=0,comH=0;
@@ -361,9 +360,8 @@ details[open] summary{margin-bottom:14px}
       L.comV[k]=-comV;L.comH[k]=-comH;L.mc[k]=liq-comV-comH;
       L.fixoV[k]=-(edOv.fixoV[k]??data[k].vend*n("fixoV"));
       L.traf[k]=-(edOv.traf[k]??data[k].leads*n("cpl"));
-      L.conf[k]=-(edOv.conf[k]??n("conf"));
-      let fix=0;items.forEach(it=>{const v=k>=(+it.ini||0)?(+it.valor||0):0;it.vals[k]=-v;fix+=v});
-      L.res[k]=L.mc[k]+L.fixoV[k]+L.traf[k]+L.conf[k]-fix;
+      let fix=0;items.forEach(it=>{const o=it.ov||{};const v=o[k]!==undefined?o[k]:(k>=(+it.ini||0)?(+it.valor||0):0);it.vals[k]=-v;fix+=v});
+      L.res[k]=L.mc[k]+L.fixoV[k]+L.traf[k]-fix;
       L.acc[k]=(k?L.acc[k-1]:0)+L.res[k];
     }
     // receita líquida após o período (parcelas futuras, com perdas)
@@ -414,6 +412,7 @@ details[open] summary{margin-bottom:14px}
     const grp=g=>items.filter(i=>i.grupo===g);
     const add=(...arrs)=>Array.from({length:h},(_,k)=>arrs.reduce((a,x)=>a+x[k],0));
     const pct=n("imp");
+    const itemRow=it=>{const idx=items.indexOf(it),o=costs[idx].ov||{};return `<tr class="it"><td>${esc(it.nome)}</td>${it.vals.map((v,k)=>`<td><input type="number" min="0" step="50" id="it${idx}_${k}" data-item="${idx}" data-k="${k}" class="${o[k]!==undefined?"man":""}" value="${Math.round(-v)}" aria-label="${esc(it.nome)} ${M[k]}"></td>`).join("")}${cell(sum(it.vals),"tc")}</tr>`};
     const edRow=(label,key,arr)=>`<tr class="it"><td>${label}</td>${arr.map((v,k)=>`<td><input type="number" min="0" step="100" id="ed${key}${k}" data-ed="${key}" data-k="${k}" class="${edOv[key][k]!==undefined?"man":""}" value="${Math.round(-v)}" aria-label="${label} ${M[k]}"></td>`).join("")}${cell(sum(arr),"tc")}</tr>`;
     let t=`<thead><tr><th>Linha</th>${M.map(x=>`<th>${x}</th>`).join("")}<th class="tc">Total</th></tr></thead><tbody>`;
     t+=row("Receita bruta de comissões",L.bruta);
@@ -429,17 +428,16 @@ details[open] summary{margin-bottom:14px}
     const time=grp("time"), timeTot=add(L.fixoV,...time.map(i=>i.vals));
     t+=row("(-) "+GROUPS.time,timeTot,"cat");
     t+=edRow("Fixo dos vendedores","fixoV",L.fixoV);
-    time.forEach(i=>t+=row(esc(i.nome),i.vals,"it"));
+    time.forEach(i=>t+=itemRow(i));
     // Marketing
-    const mk=grp("mkt"), confInputs=edRow("Confraria","conf",L.conf);
-    const mkTot=add(L.traf,L.conf,...mk.map(i=>i.vals));
+    const mk=grp("mkt");
+    const mkTot=add(L.traf,...mk.map(i=>i.vals));
     t+=row("(-) "+GROUPS.mkt,mkTot,"cat");
     t+=edRow("Tráfego pago","traf",L.traf);
-    t+=confInputs;
-    mk.forEach(i=>t+=row(esc(i.nome),i.vals,"it"));
+    mk.forEach(i=>t+=itemRow(i));
     // Ferramentas
     const fe=grp("ferr");
-    if(fe.length){t+=row("(-) "+GROUPS.ferr,add(...fe.map(i=>i.vals)),"cat");fe.forEach(i=>t+=row(esc(i.nome),i.vals,"it"))}
+    if(fe.length){t+=row("(-) "+GROUPS.ferr,add(...fe.map(i=>i.vals)),"cat");fe.forEach(i=>t+=itemRow(i))}
     t+=`</tbody><tfoot>`;
     t+=row("Resultado operacional",L.res,"res",true);
     t+=`<tr class="tot"><td>Resultado acumulado</td>${L.acc.map(v=>cell(v,"sign")).join("")}<td class="tc"></td></tr>`;
@@ -462,9 +460,9 @@ details[open] summary{margin-bottom:14px}
     const liq=sum(L.liq);
     $("kMC").textContent=liq>0?num(sum(L.mc)/liq*100,1)+"%":"–";
     const vendas=data.reduce((a,d)=>a+d.vendas,0);
-    const aq=-(sum(L.traf)+sum(L.conf)+sum(mk.flatMap(i=>i.vals))+sum(L.fixoV)+sum(L.comV)+sum(L.comH)+sum(time.flatMap(i=>i.vals)));
+    const aq=-(sum(L.traf)+sum(mk.flatMap(i=>i.vals))+sum(L.fixoV)+sum(L.comV)+sum(L.comH)+sum(time.flatMap(i=>i.vals)));
     $("kCAC").textContent=vendas>0?brlK(aq/vendas):"–";
-    const fixAll=-(sum(L.fixoV)+sum(L.conf)+sum(items.flatMap(i=>i.vals)));
+    const fixAll=-(sum(L.fixoV)+sum(items.flatMap(i=>i.vals)));
     $("kFix").textContent=brlK(fixAll/h);
     $("kFut").textContent=brlK(fut);
     $("dreHorizon").textContent=`${M[0]} a ${M[h-1]}`;
@@ -502,22 +500,22 @@ details[open] summary{margin-bottom:14px}
     if(!s){const old=JSON.parse(localStorage.getItem("boazProj")||"null");if(old){s={};["leads","tAg","tRe","tVe","tkt","com","parc","ini","vend"].forEach(k=>{if(old[k]!==undefined)s[k]=old[k]});s.ov=old.ov}}
     if(!s)return;
     Object.keys(DEF).forEach(k=>{if(s[k]!==undefined)$(k).value=s[k]});
-    ov=s.ov||{};edOv=Object.assign({conf:{},traf:{},fixoV:{}},s.edOv||{});if(s.confOv)edOv.conf=s.confOv;if(Array.isArray(s.costs))costs=s.costs;
+    ov=s.ov||{};edOv=Object.assign({traf:{},fixoV:{}},s.edOv||{});delete edOv.conf;if(Array.isArray(s.costs))costs=s.costs;
   }catch(e){}}
 
   Object.keys(DEF).forEach(k=>$(k).addEventListener("input",()=>{
     if(k==="vend"||k==="leads")Object.values(ov).forEach(o=>delete o[k]);
-    if(k==="conf")edOv.conf={};if(k==="cpl")edOv.traf={};if(k==="fixoV")edOv.fixoV={};
+    if(k==="cpl")edOv.traf={};if(k==="fixoV")edOv.fixoV={};
     if(k==="hor"||k==="ini")renderCosts();
     render();
   }));
   $("mtab").addEventListener("change",e=>{const t=e.target;if(t.tagName!=="INPUT")return;const i=+t.dataset.i,k=t.dataset.k,v=parseFloat(t.value);ov[i]=ov[i]||{};ov[i][k]=isFinite(v)?v:0;render()});
-  $("dtab").addEventListener("change",e=>{const t=e.target;if(t.dataset.ed===undefined)return;const v=parseFloat(t.value),o=edOv[t.dataset.ed],k=+t.dataset.k;if(t.value.trim()==="")delete o[k];else o[k]=isFinite(v)?v:0;render()});
-  $("costs").addEventListener("input",e=>{const t=e.target;if(t.dataset.c===undefined)return;const c=costs[+t.dataset.c],f=t.dataset.f;c[f]=(f==="nome"||f==="grupo")?t.value:(parseFloat(t.value)||0);render()});
+  $("dtab").addEventListener("change",e=>{const t=e.target;if(t.dataset.item!==undefined){const c=costs[+t.dataset.item],k=+t.dataset.k,v=parseFloat(t.value);c.ov=c.ov||{};if(t.value.trim()==="")delete c.ov[k];else c.ov[k]=isFinite(v)?v:0;render();return}if(t.dataset.ed===undefined)return;const v=parseFloat(t.value),o=edOv[t.dataset.ed],k=+t.dataset.k;if(t.value.trim()==="")delete o[k];else o[k]=isFinite(v)?v:0;render()});
+  $("costs").addEventListener("input",e=>{const t=e.target;if(t.dataset.c===undefined)return;const c=costs[+t.dataset.c],f=t.dataset.f;if(f==="valor"||f==="ini")delete c.ov;c[f]=(f==="nome"||f==="grupo")?t.value:(parseFloat(t.value)||0);render()});
   $("costs").addEventListener("change",e=>{if(e.target.dataset.f==="grupo"||e.target.dataset.f==="ini")render()});
   $("costs").addEventListener("click",e=>{const d=e.target.dataset.del;if(d===undefined)return;costs.splice(+d,1);renderCosts();render()});
   $("addCost").addEventListener("click",()=>{costs.push({nome:"Novo custo",valor:0,grupo:"ferr",ini:0});renderCosts();render();const i=costs.length-1;$("cn"+i).focus();$("cn"+i).select()});
-  $("reset").addEventListener("click",()=>{Object.entries(DEF).forEach(([k,v])=>$(k).value=v);ov={};edOv={conf:{},traf:{},fixoV:{}};costs=JSON.parse(JSON.stringify(DEF_COSTS));renderCosts();render()});
+  $("reset").addEventListener("click",()=>{Object.entries(DEF).forEach(([k,v])=>$(k).value=v);ov={};edOv={traf:{},fixoV:{}};costs=JSON.parse(JSON.stringify(DEF_COSTS));renderCosts();render()});
   window.addEventListener("hashchange",route);
 
   load();renderCosts();route();render();
