@@ -13,7 +13,7 @@
   --ink:#2B2C37; --cyan:#22C6E8; --cyan-deep:#0E8FAE;
   --bg:#F4F6F9; --surface:#FFFFFF; --line:#DFE4EB; --muted:#667085; --fg:#1F2029;
   --cyan-soft:#E4F7FC; --field:#F7F9FB; --ink-soft:#EDEEF2;
-  --neg:#C0392B; --pos:#1A7F4B; --neg-soft:#FBECEA;
+  --neg:#C0392B; --pos:#1A7F4B; --neg-soft:#FBECEA; --pos-soft:#E6F4EC;
   --display:"Lexend","Segoe UI",system-ui,sans-serif;
   --body:"Figtree","Segoe UI",system-ui,sans-serif;
 }
@@ -21,12 +21,12 @@
   --ink:#E8EAF0; --cyan:#3ED2F0; --cyan-deep:#5FDCF4;
   --bg:#16171E; --surface:#1F2029; --line:#30323E; --muted:#9A9FB0; --fg:#ECEDF2;
   --cyan-soft:#16343D; --field:#262833; --ink-soft:#2A2C37;
-  --neg:#F2796B; --pos:#4FD08C; --neg-soft:#3A2224; color-scheme:dark}}
+  --neg:#F2796B; --pos:#4FD08C; --neg-soft:#3A2224; --pos-soft:#1C3328; color-scheme:dark}}
 :root[data-theme="dark"]{
   --ink:#E8EAF0; --cyan:#3ED2F0; --cyan-deep:#5FDCF4;
   --bg:#16171E; --surface:#1F2029; --line:#30323E; --muted:#9A9FB0; --fg:#ECEDF2;
   --cyan-soft:#16343D; --field:#262833; --ink-soft:#2A2C37;
-  --neg:#F2796B; --pos:#4FD08C; --neg-soft:#3A2224; color-scheme:dark}
+  --neg:#F2796B; --pos:#4FD08C; --neg-soft:#3A2224; --pos-soft:#1C3328; color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:24px 48px}
@@ -144,6 +144,39 @@ details[open] summary{margin-bottom:14px}
 [data-view]{display:flex;flex-direction:column;gap:24px}
 [hidden]{display:none!important}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+/* Funil de tráfego */
+.lever{display:flex;flex-direction:column;gap:6px}
+.lever .top{display:grid;grid-template-columns:1fr 112px;align-items:center;gap:10px}
+.lever label{font-size:13.5px}
+.lever small{display:block;color:var(--muted);font-size:11.5px}
+.lever input[type=range]{width:100%;accent-color:var(--cyan);margin:0}
+.alerts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.alerts li{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;font-size:13.5px;padding:10px 12px;border-radius:10px;background:var(--field)}
+.alerts li .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--surface)}
+.alerts li.bad{background:var(--neg-soft)}.alerts li.bad .ic{background:var(--neg)}
+.alerts li.good{background:var(--pos-soft)}.alerts li.good .ic{background:var(--pos)}
+.alerts li.ok .ic{background:var(--muted)}
+.alerts li b{font-weight:600;color:var(--ink)}
+.alerts li span.d{display:block;color:var(--muted);font-size:12.5px}
+.basebar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tfunnel{display:flex;flex-direction:column;gap:4px}
+.tst{display:grid;grid-template-columns:150px 1fr 90px 130px;align-items:center;gap:12px}
+.tst .nm{font-size:13.5px;font-weight:600;color:var(--ink)}
+.tst .q{text-align:right;font-family:var(--display);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.tst .c{text-align:right;font-variant-numeric:tabular-nums;font-size:13.5px;color:var(--fg)}
+.tst .c small,.tst .q small{display:block;font-size:11px;font-family:var(--body);font-weight:500;color:var(--muted)}
+.tst.hot .bar i{background:var(--cyan)}
+.tst.inv .bar i{background:var(--ink-soft)}
+.trate{display:grid;grid-template-columns:150px 1fr;gap:12px;font-size:11.5px;color:var(--muted)}
+.trate span{grid-column:2;padding-left:4px}
+.trate.bad span{color:var(--neg);font-weight:600}.trate.good span{color:var(--pos);font-weight:600}
+.dl{font-size:11px;font-weight:600}
+.dl.up{color:var(--pos)}.dl.down{color:var(--neg)}
+.tst .c.bad{color:var(--neg);font-weight:600}.tst .c.good{color:var(--pos);font-weight:600}
+@media (max-width:620px){.tst{grid-template-columns:1fr 80px 110px}.tst .bar{grid-column:1/-1;grid-row:2}.trate{grid-template-columns:1fr}.trate span{grid-column:1}}
+.chip{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--field);color:var(--muted)}
+.chip.g{background:var(--pos-soft);color:var(--pos)}.chip.y{background:var(--cyan-soft);color:var(--cyan-deep)}.chip.r{background:var(--neg-soft);color:var(--neg)}
+#tfLim td input{width:96px}
 </style>
 <style>html{color-scheme:light}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
 </head>
@@ -164,8 +197,9 @@ details[open] summary{margin-bottom:14px}
     <nav class="tabs" aria-label="Telas">
       <a href="#projecao" id="tabProj">Projeção comercial</a>
       <a href="#dre" id="tabDre">DRE</a>
+      <a href="#trafego" id="tabTf">Funil de tráfego</a>
     </nav>
-    <label class="hor" for="hor">Horizonte
+    <label class="hor" for="hor" id="horWrap">Horizonte
       <select id="hor"><option value="12">12 meses</option><option value="18">18 meses</option><option value="24">24 meses</option></select>
     </label>
   </div>
@@ -290,7 +324,54 @@ details[open] summary{margin-bottom:14px}
     </section>
   </div>
 
-  <div><button type="button" class="btn" id="reset">Voltar tudo ao padrão</button></div>
+  <!-- ================= FUNIL DE TRÁFEGO ================= -->
+  <div data-view="trafego" id="viewTf" hidden>
+    <div class="grid">
+      <aside class="panel">
+        <div class="sub"><h2>Alavancas</h2><button type="button" class="btn" id="tfReset">Voltar ao padrão</button></div>
+        <div class="fields" id="tfLevers"></div>
+      </aside>
+
+      <div class="right">
+        <section class="panel" id="tfAlertsBox">
+          <div class="sub"><h2>Avisos</h2><span class="eyebrow" id="tfAlertCount"></span></div>
+          <ul class="alerts" id="tfAlerts"></ul>
+        </section>
+        <section class="panel">
+          <div class="sub"><h2>Funil do mês</h2>
+            <div class="basebar"><span class="hint" id="tfBaseInfo">Sem base fixada</span><button type="button" class="btn" id="tfBaseSet">Fixar como base</button><button type="button" class="btn" id="tfBaseClear" hidden>Limpar base</button></div>
+          </div>
+          <div class="tfunnel" id="tfFunnel"></div>
+        </section>
+      </div>
+    </div>
+
+    <section class="panel">
+      <div class="sub"><h2>Retorno do tráfego</h2><span class="hint" id="tfRetHint"></span></div>
+      <div class="kpis" id="tfRet"></div>
+      <p class="note" id="tfRetNote"></p>
+    </section>
+
+    <section class="panel">
+      <div class="sub"><h2>Rotas até a meta de CAC</h2>
+        <label class="hor" for="tfMeta">Meta de CAC de tráfego
+          <span class="inp brl" style="width:140px"><input id="tfMeta" type="number" min="1" step="50" value="1000"></span>
+        </label>
+      </div>
+      <p class="hint" style="margin-bottom:12px" id="tfRotaHint"></p>
+      <div class="tbl"><table id="tfRotas"></table></div>
+    </section>
+
+    <section class="panel">
+      <details id="tfLimDet">
+        <summary><h2 style="margin:0">Limites dos avisos</h2><span class="chev">mostrar / ocultar</span></summary>
+        <p class="hint" style="margin-bottom:12px">Referências de partida para funil consultivo de ticket alto. Ajuste conforme os números reais da operação.</p>
+        <div class="tbl"><table id="tfLim"></table></div>
+      </details>
+    </section>
+  </div>
+
+  <div id="resetWrap"><button type="button" class="btn" id="reset">Voltar tudo ao padrão</button></div>
 </div>
 
 <script>
@@ -485,12 +566,14 @@ details[open] summary{margin-bottom:14px}
 
   // ---------- Abas ----------
   function route(){
-    const dre=location.hash==="#dre";
-    $("viewProj").hidden=dre;$("viewDre").hidden=!dre;
-    $("tabProj").setAttribute("aria-current",dre?"false":"page");
-    $("tabDre").setAttribute("aria-current",dre?"page":"false");
-    $("pageTitle").textContent=dre?"DRE da operação":"Projeção comercial";
-    $("pageSub").textContent=dre?"Receita, perdas, impostos e custos em regime de caixa":"Funil, cartas vendidas e comissão a receber";
+    const v=location.hash==="#dre"?"dre":location.hash==="#trafego"?"tf":"proj";
+    $("viewProj").hidden=v!=="proj";$("viewDre").hidden=v!=="dre";$("viewTf").hidden=v!=="tf";
+    $("tabProj").setAttribute("aria-current",v==="proj"?"page":"false");
+    $("tabDre").setAttribute("aria-current",v==="dre"?"page":"false");
+    $("tabTf").setAttribute("aria-current",v==="tf"?"page":"false");
+    $("horWrap").hidden=v==="tf";$("resetWrap").hidden=v==="tf";
+    const T={proj:["Projeção comercial","Funil, cartas vendidas e comissão a receber"],dre:["DRE da operação","Receita, perdas, impostos e custos em regime de caixa"],tf:["Funil de tráfego","Investimento, custo por etapa e CAC de tráfego"]}[v];
+    $("pageTitle").textContent=T[0];$("pageSub").textContent=T[1];
   }
 
   function render(){const m=model();renderProj(m);renderDre(m);save()}
@@ -522,6 +605,200 @@ details[open] summary{margin-bottom:14px}
   load();renderCosts();route();render();
 })();
 </script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const KEY="boazTrafego";
+  const LEVERS=[
+    {id:"inv",label:"Investimento em mídia",sub:"por mês",unit:"brl",min:0,max:200000,step:1000,def:25000},
+    {id:"cpl",label:"Custo por lead (CPL)",unit:"brl",min:1,max:200,step:0.5,def:25},
+    {id:"r1",label:"Lead → MQL",sub:"qualificação",unit:"pct",min:0,max:100,step:0.5,def:40},
+    {id:"r2",label:"MQL → reunião agendada",unit:"pct",min:0,max:100,step:0.5,def:50},
+    {id:"r3",label:"Agendada → realizada",sub:"comparecimento",unit:"pct",min:0,max:100,step:0.5,def:70},
+    {id:"r4",label:"Realizada → venda",sub:"conversão",unit:"pct",min:0,max:100,step:0.5,def:15}
+  ];
+  // limites: tipo "max" = alerta quando passa de; "min" = alerta quando fica abaixo de
+  const LIM_DEF={
+    cpl:{nome:"Custo por lead",tipo:"custo",alerta:40,otimo:15},
+    r1:{nome:"Lead → MQL",tipo:"taxa",alerta:25,otimo:55},
+    r2:{nome:"MQL → agendada",tipo:"taxa",alerta:30,otimo:60},
+    r3:{nome:"Comparecimento",tipo:"taxa",alerta:60,otimo:80},
+    r4:{nome:"Realizada → venda",tipo:"taxa",alerta:10,otimo:20},
+    cmql:{nome:"Custo por MQL",tipo:"custo",alerta:100,otimo:35},
+    cag:{nome:"Custo por agendada",tipo:"custo",alerta:200,otimo:80},
+    cre:{nome:"Custo por realizada",tipo:"custo",alerta:300,otimo:120},
+    cac:{nome:"CAC de tráfego",tipo:"custo",alerta:1500,otimo:700}
+  };
+  const TIPS={
+    cpl:["CPL alto: revisar criativos, público e página de captura","CPL muito bom: espaço para escalar o investimento"],
+    r1:["Poucos leads qualificados: revisar segmentação e perguntas do formulário","Qualificação forte: público bem segmentado"],
+    r2:["Poucos MQLs viram reunião: revisar velocidade e roteiro do primeiro contato","Agendamento muito bom: SDR performando"],
+    r3:["Muita gente faltando: reforçar confirmação e lembretes da reunião","Comparecimento excelente"],
+    r4:["Conversão baixa nas reuniões: revisar pitch, oferta e qualificação","Fechamento muito bom: time comercial afiado"],
+    cmql:["MQL caro: CPL alto ou qualificação baixa","MQL barato"],
+    cag:["Reunião agendada cara","Reunião agendada barata"],
+    cre:["Reunião realizada cara","Reunião realizada barata"],
+    cac:["CAC de tráfego acima do limite","CAC de tráfego muito bom"]
+  };
+  let lim=JSON.parse(JSON.stringify(LIM_DEF)), base=null;
+
+  const brl=v=>{if(!isFinite(v))return "–";const a=Math.abs(v);const d=a<100?2:0;return (v<0?"-":"")+"R$ "+a.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d})};
+  const brlK=v=>{const a=Math.abs(v),s=v<0?"-":"";if(a>=1e6)return s+"R$ "+(a/1e6).toLocaleString("pt-BR",{maximumFractionDigits:2})+" mi";if(a>=1e4)return s+"R$ "+(a/1e3).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mil";return brl(v)};
+  const num=(v,d=0)=>isFinite(v)?v.toLocaleString("pt-BR",{minimumFractionDigits:d,maximumFractionDigits:d}):"–";
+  const val=id=>{const v=parseFloat($("tf_"+id).value);return isFinite(v)?v:0};
+  const ext=id=>{const e=$(id);const v=e?parseFloat(e.value):NaN;return isFinite(v)?v:0};
+
+  // ---- montar alavancas ----
+  $("tfLevers").innerHTML=LEVERS.map(l=>`<div class="lever">
+    <div class="top"><label for="tf_${l.id}">${l.label}${l.sub?`<small>${l.sub}</small>`:""}</label>
+    <div class="inp ${l.unit}"><input id="tf_${l.id}" type="number" min="${l.min}" step="${l.step}" value="${l.def}"></div></div>
+    <input type="range" id="tf_${l.id}_r" min="${l.min}" max="${l.max}" step="${l.step}" value="${l.def}" aria-label="${l.label}">
+  </div>`).join("");
+
+  function calc(v){
+    const leads=v.cpl>0?v.inv/v.cpl:0, mql=leads*v.r1/100, ag=mql*v.r2/100, re=ag*v.r3/100, vend=re*v.r4/100;
+    const c=x=>x>0?v.inv/x:Infinity;
+    return {inv:v.inv,leads,mql,ag,re,vend,cpl:c(leads),cmql:c(mql),cag:c(ag),cre:c(re),cac:c(vend)};
+  }
+  const cur=()=>Object.fromEntries(LEVERS.map(l=>[l.id,val(l.id)]));
+
+  // retorno por venda usando premissas das outras abas
+  function unitEconomics(){
+    const tkt=ext("tkt"),com=ext("com")/100,P=Math.max(1,Math.round(ext("parc")||12)),ch=ext("churn")/100,inad=ext("inad")/100,imp=ext("imp")/100;
+    const cv=(ext("cv")+ext("ch"))/100, PV=Math.max(1,Math.round(ext("cvp")||12)), follow=($("follow")||{}).value!=="0";
+    const bruto=tkt*com; let liq=0; const flow=[];
+    const H=Math.max(P,PV);
+    for(let k=1;k<=H;k++){
+      const a=Math.pow(1-ch,k);
+      let rec=k<=P?bruto/P*a*(1-inad)*(1-imp):0;
+      let pay=k<=PV?tkt*cv/PV*(follow?a*(1-inad):1):0;
+      flow.push(rec-pay);liq+=rec-pay;
+    }
+    return {tkt,bruto,liq,flow};
+  }
+
+  function status(key,v){
+    const L=lim[key];if(!L||!isFinite(v))return "ok";
+    if(L.tipo==="taxa"){if(v<L.alerta)return "bad";if(v>=L.otimo)return "good";return "ok"}
+    if(v>L.alerta)return "bad";if(v<=L.otimo)return "good";return "ok";
+  }
+  function delta(key,v,lowerIsBetter){
+    if(!base||!isFinite(v)||!isFinite(base[key])||base[key]===0)return "";
+    const d=(v/base[key]-1)*100;if(Math.abs(d)<0.05)return `<span class="dl">= base</span>`;
+    const good=lowerIsBetter?d<0:d>0;
+    return `<span class="dl ${good?"up":"down"}">${d>0?"+":""}${num(d,1)}% vs base</span>`;
+  }
+
+  function render(){
+    const v=cur(), r=calc(v);
+    // funil
+    const st=[
+      ["Investimento",r.inv,null,null,"inv"],
+      ["Leads",r.leads,"cpl","Custo por lead",null],
+      ["MQL",r.mql,"cmql","Custo por MQL","r1"],
+      ["Reunião agendada",r.ag,"cag","Custo por agendada","r2"],
+      ["Reunião realizada",r.re,"cre","Custo por realizada","r3"],
+      ["Vendas",r.vend,"cac","CAC de tráfego","r4"]
+    ];
+    const max=Math.max(r.leads,1);
+    let h="";
+    st.forEach((s,i)=>{
+      if(i===0){h+=`<div class="tst inv"><div class="nm">Investimento</div><div></div><div></div><div class="c"><b>${brl(r.inv)}</b>${delta("inv",r.inv,false)?`<small>${delta("inv",r.inv,false)}</small>`:""}</div></div>`;return}
+      if(s[4]){const rv=v[s[4]],stt=status(s[4],rv);h+=`<div class="trate ${stt}"><span>↓ ${num(rv,1)}% de passagem</span></div>`}
+      const w=Math.max(s[1]/max*100,s[1]>0?1.5:0), stc=status(s[2],r[s[2]]);
+      h+=`<div class="tst${i===5?" hot":""}"><div class="nm">${s[0]}</div><div class="bar"><i style="width:${w}%"></i></div>
+        <div class="q">${num(s[1],s[1]<100?1:0)}${delta(["","leads","mql","ag","re","vend"][i],s[1],false)?`<small>${delta(["","leads","mql","ag","re","vend"][i],s[1],false)}</small>`:""}</div>
+        <div class="c ${stc==="ok"?"":stc}">${brl(r[s[2]])}<small>${s[3]}</small>${delta(s[2],r[s[2]],true)?`<small>${delta(s[2],r[s[2]],true)}</small>`:""}</div></div>`;
+    });
+    $("tfFunnel").innerHTML=h;
+
+    // avisos
+    const items=[];
+    const add=(key,valTxt,vv)=>{const s=status(key,vv);if(s==="ok")return;const L=lim[key];
+      const ref=L.tipo==="taxa"?(s==="bad"?`abaixo de ${num(L.alerta,1)}%`:`acima de ${num(L.otimo,1)}%`):(s==="bad"?`acima de ${brl(L.alerta)}`:`abaixo de ${brl(L.otimo)}`);
+      items.push({s,html:`<b>${L.nome} em ${valTxt}</b>, ${ref}<span class="d">${TIPS[key][s==="bad"?0:1]}</span>`})};
+    add("cpl",brl(v.cpl),v.cpl);
+    ["r1","r2","r3","r4"].forEach(k=>add(k,num(v[k],1)+"%",v[k]));
+    ["cmql","cag","cre","cac"].forEach(k=>add(k,brl(r[k]),r[k]));
+    const ue=unitEconomics();
+    if(r.vend>0&&isFinite(r.cac)&&r.cac>ue.liq)items.unshift({s:"bad",html:`<b>CAC de tráfego (${brl(r.cac)}) maior que a margem líquida por venda (${brl(ue.liq)})</b><span class="d">Cada venda vinda do tráfego dá prejuízo, mesmo antes dos custos fixos</span>`});
+    items.sort((a,b)=>(a.s==="bad"?0:1)-(b.s==="bad"?0:1));
+    const bad=items.filter(i=>i.s==="bad").length,good=items.length-bad;
+    $("tfAlerts").innerHTML=items.length?items.map(i=>`<li class="${i.s}"><span class="ic">${i.s==="bad"?"!":"✓"}</span><div>${i.html}</div></li>`).join(""):`<li class="ok"><span class="ic">·</span><div>Todos os KPIs dentro da faixa normal<span class="d">Nenhum indicador abaixo do limite de alerta ou acima da faixa de ótimo</span></div></li>`;
+    $("tfAlertCount").textContent=`${bad} de atenção · ${good} muito bons`;
+
+    // retorno
+    const vend=r.vend, totLiq=vend*ue.liq, roi=r.inv>0?totLiq/r.inv:0;
+    let acc=-r.inv,pb=-1;for(let k=0;k<ue.flow.length;k++){acc+=vend*ue.flow[k];if(acc>=0){pb=k+1;break}}
+    const cacMax=ue.liq;
+    $("tfRet").innerHTML=[
+      ["kpi",brlK(ue.bruto),"comissão bruta por venda"],
+      ["kpi",brlK(ue.liq),"margem líquida por venda (CAC máximo)"],
+      ["kpi "+(roi>=1?"accent":"bad"),"R$ "+num(roi,2),"de retorno por R$ 1 em mídia"],
+      ["kpi",pb<0?"não se paga":(pb===1?"1 mês":pb+" meses"),"para o investimento do mês se pagar"]
+    ].map(k=>`<div class="${k[0]}"><b>${k[1]}</b><span>${k[2]}</span></div>`).join("");
+    $("tfRetHint").textContent=`Ticket de ${brlK(ue.tkt)}, premissas das abas Projeção e DRE`;
+    $("tfRetNote").textContent=`Margem líquida por venda = comissão da Boaz em 12x a partir do mês seguinte, menos cancelamento, inadimplência, impostos e comissões do vendedor e do head. Não inclui custos fixos. Investimento do mês gera ${num(vend,1)} vendas e ${brlK(totLiq)} de margem ao longo das parcelas.`;
+
+    // rotas
+    const meta=parseFloat($("tfMeta").value)||0;
+    const prod=v.r1*v.r2*v.r3*v.r4/1e8;
+    $("tfRotaHint").textContent=meta>0?`CAC atual de ${brl(r.cac)}. A tabela mostra o valor que cada alavanca precisaria ter, sozinha, para o CAC chegar a ${brl(meta)}. O investimento não muda o CAC, só o volume.`:"Informe uma meta de CAC.";
+    const rows=[];
+    if(meta>0&&prod>0){
+      const needCpl=meta*prod;
+      rows.push(["Custo por lead",brl(v.cpl),brl(needCpl),needCpl/v.cpl,false]);
+      [["r1","Lead → MQL"],["r2","MQL → agendada"],["r3","Comparecimento"],["r4","Realizada → venda"]].forEach(([k,nm])=>{
+        const others=prod/(v[k]/100), need=v.cpl/(meta*others)*100;
+        rows.push([nm,num(v[k],1)+"%",need>100?"acima de 100%":num(need,1)+"%",need/v[k],need>100]);
+      });
+    }
+    const chip=(ratio,imp,lowerBetter)=>{
+      if(imp)return `<span class="chip r">impossível sozinha</span>`;
+      const ch=lowerBetter?(1/ratio-1):(ratio-1);
+      if(ch<=0)return `<span class="chip g">já atinge</span>`;
+      if(ch<=0.10)return `<span class="chip g">fácil</span>`;
+      if(ch<=0.30)return `<span class="chip y">moderada</span>`;
+      return `<span class="chip r">difícil</span>`;
+    };
+    $("tfRotas").innerHTML=`<thead><tr><th>Alavanca</th><th>Atual</th><th>Necessário</th><th>Variação</th><th style="text-align:left">Viabilidade</th></tr></thead><tbody>`+
+      rows.map((x,i)=>{const lb=i===0;const ch=x[4]?"":(x[3]-1)*100;return `<tr><td>${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td><td>${x[4]?"–":(ch>0?"+":"")+num(ch,1)+"%"}</td><td style="text-align:left">${chip(x[3],x[4],lb)}</td></tr>`}).join("")+`</tbody>`;
+
+    // limites
+    const lr=Object.entries(lim).map(([k,L])=>{const pct=L.tipo==="taxa";const unit=pct?"%":"R$";
+      return `<tr><td>${L.nome}</td><td style="text-align:left">${pct?"alerta abaixo de / ótimo a partir de":"alerta acima de / ótimo até"}</td>
+      <td><input type="number" step="${pct?0.5:5}" id="lim_${k}_a" data-l="${k}" data-f="alerta" value="${L.alerta}" aria-label="${L.nome} alerta"> ${unit==="%"?"%":""}</td>
+      <td><input type="number" step="${pct?0.5:5}" id="lim_${k}_o" data-l="${k}" data-f="otimo" value="${L.otimo}" aria-label="${L.nome} ótimo"> ${unit==="%"?"%":""}</td></tr>`}).join("");
+    const fid=document.activeElement&&document.activeElement.id;
+    $("tfLim").innerHTML=`<thead><tr><th>KPI</th><th style="text-align:left">Regra</th><th>Alerta</th><th>Ótimo</th></tr></thead><tbody>${lr}</tbody>`;
+    if(fid&&fid.startsWith("lim_")&&$(fid))$(fid).focus();
+
+    save(r);
+  }
+
+  function save(){try{localStorage.setItem(KEY,JSON.stringify({v:cur(),lim,base,meta:$("tfMeta").value}))}catch(e){}}
+  function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(!s)return;
+    LEVERS.forEach(l=>{if(s.v&&s.v[l.id]!==undefined){$("tf_"+l.id).value=s.v[l.id];$("tf_"+l.id+"_r").value=s.v[l.id]}});
+    if(s.lim)Object.keys(lim).forEach(k=>{if(s.lim[k])Object.assign(lim[k],{alerta:s.lim[k].alerta,otimo:s.lim[k].otimo})});
+    base=s.base||null;if(s.meta)$("tfMeta").value=s.meta;}catch(e){}}
+  function baseUi(){$("tfBaseClear").hidden=!base;$("tfBaseInfo").textContent=base?`Base: CAC ${brl(base.cac)}, ${num(base.vend,1)} vendas`:"Sem base fixada"}
+
+  LEVERS.forEach(l=>{
+    $("tf_"+l.id).addEventListener("input",()=>{$("tf_"+l.id+"_r").value=$("tf_"+l.id).value;render()});
+    $("tf_"+l.id+"_r").addEventListener("input",()=>{$("tf_"+l.id).value=$("tf_"+l.id+"_r").value;render()});
+  });
+  $("tfMeta").addEventListener("input",render);
+  $("tfLim").addEventListener("change",e=>{const t=e.target;if(!t.dataset.l)return;const x=parseFloat(t.value);if(isFinite(x))lim[t.dataset.l][t.dataset.f]=x;render()});
+  $("tfBaseSet").addEventListener("click",()=>{base=calc(cur());baseUi();render()});
+  $("tfBaseClear").addEventListener("click",()=>{base=null;baseUi();render()});
+  $("tfReset").addEventListener("click",()=>{LEVERS.forEach(l=>{$("tf_"+l.id).value=l.def;$("tf_"+l.id+"_r").value=l.def});lim=JSON.parse(JSON.stringify(LIM_DEF));$("tfMeta").value=1000;render()});
+  ["tkt","com","parc","churn","inad","imp","cv","ch","cvp","follow"].forEach(id=>{const e=$(id);if(e){e.addEventListener("input",render);e.addEventListener("change",render)}});
+  $("reset").addEventListener("click",()=>setTimeout(render,0));
+
+  load();baseUi();render();
+})();
+</script>
+
 
 </body>
 </html>
